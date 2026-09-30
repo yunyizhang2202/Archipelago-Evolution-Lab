@@ -12,7 +12,26 @@ An interactive teaching simulator with a Chinese interface, exploring inheritanc
   Run replicated paired experiments to compare interventions.
 
 ## 使用 | Usage
-下载并解压项目，保留完整 `dist` 文件夹，用浏览器打开 `dist/index.html`。无需安装或联网。
+
+**请先下载整个项目，再打开 HTML。不要在 GitHub 文件列表中直接点击 HTML 来运行。**
+
+1. 回到仓库首页，点击绿色 **Code → Download ZIP**。
+2. 将下载的 ZIP **全部解压**。
+3. 打开解压后的文件夹，进入 **archipelago-evolution → dist**。
+4. 双击 **index.html**，用 Chrome 或 Edge 打开。
+5. 保留完整 `dist` 文件夹，其中的脚本和样式文件是运行所必需的。
+
+无需安装其他软件，也无需联网。
+
+**Download the entire project before opening the HTML file. Clicking HTML in GitHub’s file browser displays its source rather than running the simulator.**
+
+1. On the repository home page, select **Code → Download ZIP**.
+2. **Extract all files** from the ZIP.
+3. Open **archipelago-evolution → dist** inside the extracted folder.
+4. Double-click **index.html** to open it in Chrome or Edge.
+5. Keep the entire `dist` folder intact; its scripts and styles are required.
+
+No additional software installation or internet connection is needed.
 
 Download and extract the project, keep the entire `dist` folder, and open `dist/index.html` in a browser. No installation or internet connection required.
 
