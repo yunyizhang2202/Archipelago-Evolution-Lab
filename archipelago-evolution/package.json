@@ -1,0 +1,1 @@
+{"name":"archipelago-evolution-lab","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node server.cjs","test":"node tests/model.test.mjs","check":"node --check dist/model.js && node --check dist/view.js && node --check dist/app.js"}}

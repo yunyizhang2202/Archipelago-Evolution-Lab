@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>群岛进化实验室 · Archipelago</title>
+  <meta name="description" content="亲手改变环境，观察遗传、选择、漂变与迁移。可复现的中文群岛进化实验室。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23152f2c'/%3E%3Ccircle cx='11' cy='12' r='5' fill='%239fe2c8'/%3E%3Ccircle cx='23' cy='13' r='4' fill='%23ffd66b'/%3E%3Ccircle cx='17' cy='24' r='4' fill='%23f092ab'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="icons.js"></script><script defer src="model.js"></script><script defer src="view.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#" aria-label="群岛进化实验室首页"><span class="brand-mark"><i></i><i></i><i></i></span><span><strong>群岛进化实验室</strong><small>ARCHIPELAGO / EVOLUTION LAB</small></span></a>
+  <div class="header-right"><span class="version">个体模型 v1.0</span><button class="quiet" id="guideBtn"><i data-lucide="compass"></i>三分钟体验</button></div>
+</header>
+<div class="nav-row">
+  <nav class="tabs" aria-label="实验室视图" role="tablist">
+    <button role="tab" aria-selected="true" aria-controls="livePanel" id="liveTab" data-tab="live" class="active"><i data-lucide="tree-palm"></i>演化现场</button>
+    <button role="tab" aria-selected="false" aria-controls="experimentPanel" id="experimentTab" data-tab="experiment" tabindex="-1"><i data-lucide="split"></i>对照实验</button>
+    <button role="tab" aria-selected="false" aria-controls="modelPanel" id="modelTab" data-tab="model" tabindex="-1"><i data-lucide="notebook-tabs"></i>模型与验证</button>
+  </nav>
+  <span class="nav-note"><span class="tiny-ring"></span>共同祖先，开放结局</span>
+</div>
+<main>
+<section id="livePanel" role="tabpanel" aria-labelledby="liveTab" class="tab-panel">
+ <div class="live-layout">
+  <aside class="controls">
+    <div class="section-heading"><h2>演化条件</h2><span class="eyebrow">LIVE</span></div>
+    <div class="seed-row"><label for="seed">随机种子</label><div class="input-action"><input id="seed" value="DARWIN-1835" maxlength="60" autocomplete="off" spellcheck="false"><button class="icon-btn" id="reset" title="按当前参数与种子重置" aria-label="按当前参数与种子重置"><i data-lucide="rotate-ccw"></i></button></div></div>
+    <div class="control-group">
+      <label class="range-label" for="mutation"><span>突变率 <small>每位点 / 代</small></span><output id="mutationOut">0.20%</output></label>
+      <input id="mutation" type="range" min="0" max="2" step=".05" value=".2">
+      <label class="range-label" for="migration"><span>迁移概率 <small>每个体 / 代</small></span><output id="migrationOut">3%</output></label>
+      <input id="migration" type="range" min="0" max="60" step="1" value="3">
+      <label class="range-label" for="selection"><span>选择强度 <small>s</small></span><output id="selectionOut">1.00</output></label>
+      <input id="selection" type="range" min="0" max="4" step=".05" value="1">
+      <label class="range-label" for="capacity"><span>中性承载量 <small>每岛 K</small></span><output id="capacityOut">90</output></label>
+      <input id="capacity" type="range" min="20" max="180" step="10" value="90">
+    </div>
+    <div class="control-group routes-group"><div class="range-label"><span>岛屿连接</span><button id="toggleAll" class="text-button">全部切断</button></div><div id="edgeButtons" class="edge-buttons"><button data-edge="0" aria-pressed="true">01 ↔ 02</button><button data-edge="1" aria-pressed="true">02 ↔ 03</button><button data-edge="2" aria-pressed="true">01 ↔ 03</button></div></div>
+    <div class="control-group">
+      <label for="islandSelect" class="field-label">编辑岛屿环境</label><select id="islandSelect"><option value="0">01 · 青苔岛</option><option value="1">02 · 沙洲岛</option><option value="2">03 · 赤岩岛</option></select>
+      <label class="range-label" for="colorOpt"><span>最适体色</span><output id="colorOptOut">0.18</output></label><input id="colorOpt" class="color-range" type="range" min="0" max="1" step=".01" value=".18">
+      <label class="range-label" for="heatOpt"><span>最适耐热性</span><output id="heatOptOut">0.24</output></label><input id="heatOpt" type="range" min="0" max="1" step=".01" value=".24">
+      <p class="field-help">两种性状均为 0–1 的模型尺度。</p>
+    </div>
+    <div class="bottleneck-control"><label class="field-label" for="survivors">种群瓶颈 <span>仅当前岛屿</span></label><div class="input-action"><input id="survivors" type="number" min="0" max="999" step="1" value="8" aria-label="瓶颈保留个体数"><button id="bottleneck" class="outlined"><i data-lucide="funnel"></i>随机保留</button></div><p class="field-help">填 0 可清空该岛；重新定殖只能来自迁移。</p></div>
+    <button class="quiet full-width" id="exportLog"><i data-lucide="download"></i>导出种子与操作记录</button>
+  </aside>
+  <div class="live-main">
+   <div class="metric-bar" aria-live="off">
+    <div class="metric"><span>演化世代</span><strong id="generation">000</strong><small>generation</small></div>
+    <div class="metric"><span>现存个体</span><strong id="population">270</strong><small>三个岛屿合计</small></div>
+    <div class="metric"><span>岛间性状差异</span><strong id="divergence">0.000</strong><small>D · 非物种数</small></div>
+    <div class="metric"><span>岛内基因多样性</span><strong id="diversity">0.494</strong><small>H · 按个体数加权</small></div>
+   </div>
+   <div class="world-toolbar"><div class="transport"><button id="play" class="primary"><i data-lucide="play"></i><span>开始演化</span></button><button id="step" class="icon-btn" title="前进一代" aria-label="前进一代"><i data-lucide="step-forward"></i></button><label class="speed-label" for="speed">速度</label><select id="speed" aria-label="演化速度"><option value="1">1 代 / 秒</option><option value="3" selected>3 代 / 秒</option><option value="10">10 代 / 秒</option><option value="30">30 代 / 秒</option></select></div><span class="run-state" id="runState">已暂停</span></div>
+   <div class="world-and-inspector">
+    <div class="world-stage"><div class="stage-caption"><span>三个岛屿 · 同一祖先群体</span><span id="migrationCount">本代迁移 0</span></div><canvas id="world" aria-label="三个岛屿的个体演化图，点击个体可查看性状" role="img"></canvas><div class="world-legend"><span><i class="color-key"></i>体色 0–1</span><span><i class="size-key"></i>形体长短表示耐热性</span><span>每个标记 = 1 个体</span></div></div>
+    <aside class="inspector"><div class="section-heading"><h2>个体观察</h2><i data-lucide="scan-search"></i></div><canvas id="specimen" aria-label="所选个体的放大图" role="img"></canvas><div id="individualDetail" class="individual-detail"><p class="empty-title">选择一个个体</p><p>点击岛屿上的标记，观察它的基因型与环境匹配。</p></div><button id="sampleIndividual" class="outlined full-width"><i data-lucide="mouse-pointer-2"></i>查看当前岛屿个体</button></aside>
+   </div>
+   <div class="island-ledger" id="islandLedger"></div>
+   <div class="chart-grid">
+     <section class="plot-section"><div class="plot-heading"><h2>世代轨迹</h2><select id="trendMetric" aria-label="世代轨迹指标"><option value="n">个体数量</option><option value="color">平均体色</option><option value="heat">平均耐热性</option><option value="diversity">基因多样性 H</option><option value="fitness">平均生殖权重</option></select></div><canvas id="trend" role="img" aria-label="各岛屿指标随世代变化"></canvas><div class="chart-key"><span class="key-i0">01 青苔岛</span><span class="key-i1">02 沙洲岛</span><span class="key-i2">03 赤岩岛</span></div></section>
+     <section class="plot-section"><div class="plot-heading"><h2>当前性状分布</h2><select id="histTrait" aria-label="性状分布指标"><option value="0">体色</option><option value="1">耐热性</option></select></div><canvas id="histogram" role="img" aria-label="三个岛屿当前性状频数直方图"></canvas><div class="plot-note">13 个可取值 · 纵轴为个体数</div></section>
+   </div>
+   <details class="event-log"><summary>操作记录 <span id="eventCount">0 次干预</span></summary><ol id="events"><li>第 0 代：三个岛屿由同一祖先群体建立。</li></ol></details>
+  </div>
+ </div>
+</section>
+<section id="experimentPanel" role="tabpanel" aria-labelledby="experimentTab" class="tab-panel experiment-panel" hidden>
+ <div class="section-intro"><div><span class="eyebrow">COUNTERFACTUALS</span><h1>同一个起点，两种可能。</h1><p>只改变实验指定的条件。观察单次轨迹，再用多个随机种子检验。</p></div><button id="pairReset" class="outlined"><i data-lucide="rotate-ccw"></i>重建相同起点</button></div>
+ <div class="experiment-choices" role="group" aria-label="选择对照实验">
+  <button class="experiment-choice active" data-experiment="migration" aria-pressed="true"><span class="experiment-number">01</span><strong>连接，还是隔离？</strong><span>迁移是否减弱岛间性状分化</span></button>
+  <button class="experiment-choice" data-experiment="selection" aria-pressed="false"><span class="experiment-number">02</span><strong>适应，还是偶然？</strong><span>有选择与中性漂变的对照</span></button>
+  <button class="experiment-choice" data-experiment="bottleneck" aria-pressed="false"><span class="experiment-number">03</span><strong>数量回来了，变异呢？</strong><span>种群瓶颈之后的两种恢复</span></button>
+ </div>
+ <div class="hypothesis" id="hypothesis"></div>
+ <div class="experiment-toolbar"><div class="transport"><button id="pairPlay" class="primary"><i data-lucide="play"></i><span>并行演化</span></button><button id="pairStep" class="outlined">前进一代</button><span id="pairGen" class="mono">第 0 代</span></div><label class="inline-label">配对种子<input id="pairSeed" value="ISLAND-PAIR-01" maxlength="60" autocomplete="off"></label></div>
+ <div class="paired-worlds"><section class="paired-world"><div class="paired-title"><h2 id="labelA">A · 保持迁移</h2><span id="pairNA">N = 270</span></div><canvas id="worldA" role="img" aria-label="对照实验世界A"></canvas><div id="pairStatsA" class="pair-stats"></div></section><section class="paired-world"><div class="paired-title"><h2 id="labelB">B · 切断迁移</h2><span id="pairNB">N = 270</span></div><canvas id="worldB" role="img" aria-label="对照实验世界B"></canvas><div id="pairStatsB" class="pair-stats"></div></section></div>
+ <div class="pair-history-section"><div class="plot-heading"><h2>两世界轨迹</h2><select id="pairMetric" aria-label="两世界轨迹指标"><option value="divergence">岛间性状差异 D</option><option value="mismatch">环境失配 M</option><option value="diversity">基因多样性 H</option><option value="total">现存个体 N</option></select></div><canvas id="pairTrend" role="img" aria-label="对照实验两个世界的世代轨迹"></canvas><div class="chart-key"><span class="key-a">世界 A</span><span class="key-b">世界 B</span></div></div>
+ <section class="replicates"><div class="replicate-header"><div><h2>一次结果，不是一般规律。</h2><p>每个点来自一个独立种子；A / B 在同一种子内配对。</p></div><div class="replicate-controls"><label>重复次数<select id="replicateCount"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option></select></label><label>每次代数<select id="replicateGenerations"><option value="60">60</option><option value="100" selected>100</option><option value="160">160</option></select></label><button id="runReplicates" class="primary"><i data-lucide="flask-conical"></i>运行重复实验</button><button id="cancelReplicates" class="outlined" hidden>取消</button></div></div>
+  <progress id="replicateProgress" max="20" value="0" hidden></progress><div id="replicateStatus" class="replicate-status" aria-live="polite">尚未运行。更换实验或种子后，重复结果会清空。</div>
+  <div id="replicateResults" hidden><div id="replicateNumbers" class="replicate-numbers"></div><div class="plot-heading"><h3 id="replicatePlotTitle">成对差值分布</h3><button id="exportResults" class="quiet"><i data-lucide="download"></i>导出 CSV</button></div><canvas id="replicatePlot" role="img" aria-label="每个随机种子的成对差值分布"></canvas><p id="replicateInterpretation" class="interpretation"></p><details><summary>查看所有重复结果</summary><div class="table-scroll"><table><thead id="replicateTableHead"></thead><tbody id="replicateTableBody"></tbody></table></div></details></div>
+ </section>
+</section>
+<section id="modelPanel" role="tabpanel" aria-labelledby="modelTab" class="tab-panel model-panel" hidden>
+ <div class="section-intro"><div><span class="eyebrow">UNDER THE SURFACE</span><h1>规则透明，结果开放。</h1><p>一个有限种群、离散世代、单倍体无性繁殖的教学模型。</p></div><span class="model-badge">模型 ≠ 真实生态预测</span></div>
+ <div class="model-layout"><article class="model-text">
+  <h2>一个世代中发生什么</h2><ol class="life-cycle"><li><b>计算生殖权重</b><span>亲代的体色、耐热性与所在岛屿环境匹配，决定预期繁殖成功。</span></li><li><b>随机产生后代</b><span>用密度制约的泊松分布确定后代总数，再按权重有放回抽取亲代。有限抽样产生漂变。</span></li><li><b>遗传与双向突变</b><span>后代克隆亲代的24位基因组；每个位点独立以 μ 概率翻转。突变不依据环境决定方向。</span></li><li><b>幼体迁移</b><span>每个新个体以 m 概率迁往一个相连岛屿，目的地等概率选择。迁移后成为下一代亲代，上一代全部退出。</span></li></ol>
+  <h2>两种性状，24 个位点</h2><p>前12个二等位位点的1比例决定体色 c，后12个位点的1比例决定耐热性 t。两者各有13个可能取值，无显性、重组或表型可塑性；基因型到表型的映射不随环境改变，但同一基因型的生殖权重可以随环境改变。所有位点完全连锁，选择一个性状可能通过连锁改变另一个。</p><div class="equation">c = Σ g₁…g₁₂ / 12 &nbsp;&nbsp; t = Σ g₁₃…g₂₄ / 12</div><p>初始祖先群体各位点以0.5概率为1；三个岛屿得到同一个祖先队列的基因型副本，因此初始组成完全相同。标记的颜色对应 c，形体长度对应 t。形体是示意，不代表真实物种的生物学关系。</p>
+  <h2>选择与密度制约</h2><div class="equation">wᵢ = exp{ −s[(cᵢ − θc)² + (tᵢ − θt)²] / (2σ²) }</div><div class="equation">λ = R Σwᵢ / [1 + (R − 1) N / K]<br>N′ ~ Poisson(λ) &nbsp;&nbsp; P(亲代 i) = wᵢ / Σwᵢ</div><p>R = 3.4，σ = 0.38，默认 K = 90。K 是无选择且无净迁移时的确定性平衡数量，不是硬性上限。环境失配降低平均繁殖成功，可能使平衡数量降低或导致灭绝。迁入也可能使数量暂时超过 K。</p><p>s = 0 时所有个体 w = 1，环境完全退出繁殖过程；随机抽样仍会改变频率。空岛没有亲代，λ = 0，只能通过真实迁入重新定殖。全群岛灭绝后不会自动重启。</p>
+  <h2>图上的指标是什么</h2><dl class="metric-definitions"><dt>岛间性状差异 D</dt><dd>所有非空岛屿之间，两个平均性状的欧氏距离除以 √2，再对岛屿对取平均。只有一个或零个非空岛时不可定义。D 不等于 FST，更不等于物种形成。</dd><dt>岛内基因多样性 H</dt><dd>逐岛计算 24 个位点的平均 2p(1−p)，再按现存个体数量加权汇总。范围0–0.5。它是样本的基因多样性描述值，未作小样本无偏修正；单倍体个体本身没有杂合子。</dd><dt>环境失配 M</dt><dd>每个现存个体的 [(c−θc)²+(t−θt)²]/2，按个体平均；越低越匹配。s = 0 时仍可描述 M，但 M 不影响繁殖。全灭绝时不可定义。</dd></dl>
+  <h2>如何保证对照公平</h2><p>每一对世界使用完全相同的祖先队列和随机种子，仅改变实验说明中的条件。种子、代数、出生岛屿及事件类别共同确定随机流，繁殖、抽亲代、突变、迁移互相分离。群体数量分化后，两个世界的个体不能逐一对应；配对随机流用于减少无关波动，不声称消除了随机误差。</p><p>重复实验使用互不相同的种子，显示每个种子的 A−B 差值、均值与样本标准差。正向比例不是 p 值。它们是这个模型下的重复结果，不是针对自然界的置信结论。三组预设是可重复的标准实验，不继承“演化现场”的干预。</p>
+  <h2>何时不能外推</h2><p>没有性别与交配、重组、年龄结构、空间距离成本、环境随机波动、种间作用或真实测量误差。瓶颈是均匀随机抽取幸存者，不包含性状选择。参数未用任何真实物种拟合，世代不能换算成实际年月。看到分化不表示形成了生殖隔离。</p>
+  <h2>经典背景与本模型的关系</h2><p>有限种群抽样与漂变是群体遗传学的经典机制；密度制约采用 Beverton–Holt 形式，叠加选择及人口随机性。这里的具体多位点、迁移与表型组合是为教学设计的模型，并非复现某篇实证论文。</p><p class="references"><a href="https://doi.org/10.1093/genetics/16.2.97" target="_blank" rel="noopener">Wright (1931), Evolution in Mendelian populations</a><br><a href="https://doi.org/10.1007/978-94-011-2106-4" target="_blank" rel="noopener">Beverton & Holt, On the Dynamics of Exploited Fish Populations（1957；链接为1993再版）</a></p>
+ </article><aside class="validation-panel"><div class="section-heading"><h2>可运行的科学检查</h2><i data-lucide="shield-check"></i></div><p>检查实际使用的同一套演化引擎。每项都执行计算，并报告通过或失败。</p><button id="runTests" class="primary full-width"><i data-lucide="play"></i>运行全部检查</button><div id="testSummary" aria-live="polite">尚未运行</div><ol id="testResults" class="test-results"></ol><div class="validation-note"><h3>复现你的实验</h3><p>现场页可导出初始参数、种子和按世代排列的操作。复现接口与完整源代码随下载版提供。</p><a href="source.zip" class="outlined full-width" download><i data-lucide="download"></i>下载完整离线实验室</a></div></aside></div>
+</section>
+</main>
+<footer><span>ARCHIPELAGO</span><span>观察 · 干预 · 比较 · 验证</span><span>教学模拟，非真实物种预测</span></footer>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="guide"><div class="dialog-title"><span class="eyebrow">YOUR FIRST EXPERIMENT</span><button id="closeGuide" class="icon-btn" aria-label="关闭体验路线"><i data-lucide="x"></i></button></div><h2>用三分钟，改变一条演化轨迹。</h2><ol class="guide-steps"><li><b>第一分钟 · 观察适应</b><p>在“演化现场”开始运行，选一个个体。将世代轨迹切换为平均体色，观察三个岛屿是否逐渐分化。</p></li><li><b>第二分钟 · 改写环境</b><p>选青苔岛，将最适体色从0.18调到0.85。看数量与性状怎样一起变化。变化太剧烈，也可能导致灭绝。</p></li><li><b>第三分钟 · 检验直觉</b><p>进入“对照实验”的第三项，运行20次重复实验。数量恢复时，基因多样性也恢复了吗？点开所有结果，看看结论是否每次都一样。</p></li></ol><button id="startGuide" class="primary full-width">进入实验室</button></dialog>
+</body>
+</html>
